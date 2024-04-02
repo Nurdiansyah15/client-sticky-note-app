@@ -1,12 +1,15 @@
 import Layout from "../pages/Layout";
 import * as React from "react";
+import * as Icon from "react-feather";
 import NoteList from "../components/NoteList";
 import Button from "../components/Button";
 import { Link, useNavigate } from "react-router-dom";
 import axiosClient from "../axios/axiosClient";
 import SearchBar from "../components/SearchBar";
+import NoteListSkeleton from "../components/NoteListSkeleton";
 
 function Loby() {
+  const [showLoadingNoteList, setShowLoadingNoteList] = React.useState(false);
   const [search, setSearch] = React.useState("");
   const [popUpDelete, setPopUpDelete] = React.useState({
     show: false,
@@ -15,15 +18,18 @@ function Loby() {
   const navigate = useNavigate();
   const [notes, setNotes] = React.useState([]);
   React.useEffect(() => {
+    setShowLoadingNoteList(true);
     if (search) {
       setTimeout(() => {
         axiosClient
           .get(`/search?q=${search}`)
           .then((res) => {
             setNotes(res.data);
+            setShowLoadingNoteList(false);
           })
           .catch((err) => {
             console.log(err);
+            setShowLoadingNoteList(false);
           });
       }, 2000);
     } else {
@@ -31,9 +37,11 @@ function Loby() {
         .get("/notes")
         .then((res) => {
           setNotes(res.data);
+          setShowLoadingNoteList(false);
         })
         .catch((err) => {
           console.log(err);
+          setShowLoadingNoteList(false);
         });
     }
   }, [search]);
@@ -71,6 +79,14 @@ function Loby() {
         <SearchBar onChange={(search) => setSearch(search)} />
         <div className="w-full flex-1">
           <div>
+            {showLoadingNoteList && (
+              <div>
+                <NoteListSkeleton />
+                <NoteListSkeleton />
+                <NoteListSkeleton />
+              </div>
+            )}
+
             {notes.map((note) => (
               <NoteList
                 onClickDetail={() => {
