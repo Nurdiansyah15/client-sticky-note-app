@@ -85,22 +85,25 @@ function Loby() {
                 <NoteListSkeleton />
               </div>
             )}
-
-            {notes.map((note) => (
-              <NoteList
-                onClickDetail={() => {
-                  handleOnClickList(note.id);
-                }}
-                onClickDelete={(e) => {
-                  e.stopPropagation();
-                  handleOnClickPopup(note.id);
-                }}
-                title={note.title}
-                content={note.content}
-                key={note.id}
-                date={note.updatedAt}
-              />
-            ))}
+            {!showLoadingNoteList && (
+              <div>
+                {notes.map((note) => (
+                  <NoteList
+                    onClickDetail={() => {
+                      handleOnClickList(note.id);
+                    }}
+                    onClickDelete={(e) => {
+                      e.stopPropagation();
+                      handleOnClickPopup(note.id);
+                    }}
+                    title={note.title}
+                    content={note.content}
+                    key={note.id}
+                    date={note.updatedAt}
+                  />
+                ))}
+              </div>
+            )}
           </div>
           <div id="empty-note" className="h-64 flex flex-col justify-center">
             <p className="w-full text-4 font-bold text-slate-400 text-center">
