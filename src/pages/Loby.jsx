@@ -1,6 +1,5 @@
 import Layout from "../pages/Layout";
 import * as React from "react";
-import * as Icon from "react-feather";
 import NoteList from "../components/NoteList";
 import Button from "../components/Button";
 import { Link, useNavigate } from "react-router-dom";

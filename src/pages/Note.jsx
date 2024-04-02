@@ -4,8 +4,10 @@ import React, { useEffect } from "react";
 import axiosClient from "../axios/axiosClient";
 import { useNavigate, useParams } from "react-router-dom";
 import NoteSkeleton from "../components/NoteSkeleton";
+import LoadingPage from "../components/LoadingPage";
 
 function Note() {
+  const [loadingPage, setLoadingPage] = React.useState(false);
   const [showLoadingNote, setShowLoadingNote] = React.useState(false);
   const navigate = useNavigate();
   const [note, setNote] = React.useState({
@@ -43,34 +45,41 @@ function Note() {
     event.preventDefault();
 
     if (noteId) {
+      setLoadingPage(true);
       axiosClient
         .put(`/note/${noteId}`, {
           title: note.title,
           content: note.content,
         })
         .then((res) => {
+          setLoadingPage(false);
           navigate("/");
         })
         .catch((err) => {
           console.log(err);
+          setLoadingPage(false);
         });
       return;
     }
 
+    setLoadingPage(true);
     axiosClient
       .post("/note", {
         title: note.title,
         content: note.content,
       })
       .then((res) => {
+        setLoadingPage(false);
         navigate("/");
       })
       .catch((err) => {
+        setLoadingPage(false);
         console.log(err);
       });
   };
   return (
     <Layout>
+      {loadingPage && <LoadingPage />}
       {showLoadingNote && <NoteSkeleton />}
       {!showLoadingNote && (
         <form
