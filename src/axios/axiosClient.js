@@ -1,6 +1,7 @@
 import axios from "axios";
 const baseURL =
-  process.env.URL_API_SERVER_STICKY_APP || "http://localhost:3001/api";
+  process.env.REACT_APP_URL_API_SERVER_STICKY_APP ||
+  "http://localhost:3001/api";
 
 const instance = axios.create({
   baseURL: baseURL,
