@@ -5,6 +5,8 @@ import axiosClient from "../axios/axiosClient";
 import { useNavigate, useParams } from "react-router-dom";
 import NoteSkeleton from "../components/NoteSkeleton";
 import LoadingPage from "../components/LoadingPage";
+import { useDispatch, useSelector } from "react-redux";
+import { addNote, setState, updateNote } from "../redux/features/noteSlice";
 
 function Note() {
   const [loadingPage, setLoadingPage] = React.useState(false);
@@ -15,19 +17,26 @@ function Note() {
     content: "",
   });
   const { noteId } = useParams();
+  const dispatch = useDispatch();
+  const noteRedux = useSelector((state) => state.note.note);
+
   useEffect(() => {
     if (noteId) {
-      setShowLoadingNote(true);
-      axiosClient
-        .get(`/note/${noteId}`)
-        .then((res) => {
-          setNote(res.data);
-          setShowLoadingNote(false);
-        })
-        .catch((err) => {
-          console.log(err);
-          setShowLoadingNote(false);
-        });
+      if (noteRedux.length === 0) {
+        setShowLoadingNote(true);
+        axiosClient
+          .get("/notes")
+          .then((res) => {
+            dispatch(setState(res.data));
+            setNote(res.data.find((note) => note.id === noteId));
+            setShowLoadingNote(false);
+          })
+          .catch((err) => {
+            setShowLoadingNote(false);
+          });
+      } else if (noteRedux.length > 0) {
+        setNote(noteRedux.find((note) => note.id === noteId));
+      }
     }
   }, []);
   const handleOnChangeTitle = (event) => {
@@ -44,6 +53,7 @@ function Note() {
   const handleSubmit = (event) => {
     event.preventDefault();
 
+    // update
     if (noteId) {
       setLoadingPage(true);
       axiosClient
@@ -52,16 +62,17 @@ function Note() {
           content: note.content,
         })
         .then((res) => {
+          dispatch(updateNote(res.data));
           setLoadingPage(false);
           navigate("/");
         })
         .catch((err) => {
-          console.log(err);
           setLoadingPage(false);
         });
       return;
     }
 
+    // create
     setLoadingPage(true);
     axiosClient
       .post("/note", {
@@ -69,12 +80,12 @@ function Note() {
         content: note.content,
       })
       .then((res) => {
+        dispatch(addNote(res.data));
         setLoadingPage(false);
         navigate("/");
       })
       .catch((err) => {
         setLoadingPage(false);
-        console.log(err);
       });
   };
   return (

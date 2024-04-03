@@ -2,8 +2,7 @@ import ButtonNav from "./ButtonNav";
 import * as Icon from "react-feather";
 import * as React from "react";
 
-function SearchBar({ onChange }) {
-  //   const [search, setSearch] = React.useState("");
+function SearchBar({ onChange, valueSearch }) {
   return (
     <div className="my-5 h-12 flex">
       <input
@@ -11,7 +10,7 @@ function SearchBar({ onChange }) {
         type="text"
         className="outline-none w-11/12 h-full p-5 bg-slate-500 text-white"
         placeholder="Search..."
-        // value={search}
+        value={valueSearch}
       />
       <ButtonNav
         // onClick={() => handleSearch(search)}

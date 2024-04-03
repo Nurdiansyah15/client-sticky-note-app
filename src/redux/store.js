@@ -1,9 +1,9 @@
 import { configureStore } from "@reduxjs/toolkit";
-import pagesReducer from "./features/pagesSlice";
+import noteReducer from "./features/noteSlice";
 
 const store = configureStore({
   reducer: {
-    pages: pagesReducer,
+    note: noteReducer,
   },
 });
 

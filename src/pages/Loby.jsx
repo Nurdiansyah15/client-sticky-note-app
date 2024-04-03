@@ -6,6 +6,8 @@ import { Link, useNavigate } from "react-router-dom";
 import axiosClient from "../axios/axiosClient";
 import SearchBar from "../components/SearchBar";
 import NoteListSkeleton from "../components/NoteListSkeleton";
+import { useDispatch, useSelector } from "react-redux";
+import { setState, deleteNote } from "../redux/features/noteSlice";
 
 function Loby() {
   const [showLoadingNoteList, setShowLoadingNoteList] = React.useState(false);
@@ -16,13 +18,33 @@ function Loby() {
   });
   const navigate = useNavigate();
   const [notes, setNotes] = React.useState([]);
+  const dispatch = useDispatch();
+  const noteRedux = useSelector((state) => state.note.note);
+
   React.useEffect(() => {
-    setShowLoadingNoteList(true);
     if (search) {
-      setTimeout(() => {
+      setShowLoadingNoteList(true);
+      new Promise((resolve) => {
+        setTimeout(() => {
+          resolve();
+        }, 500);
+        setNotes(
+          noteRedux.filter(
+            (note) =>
+              note.title.toLowerCase().includes(search.toLowerCase()) ||
+              note.content.toLowerCase().includes(search.toLowerCase())
+          )
+        );
+      }).then(() => {
+        setShowLoadingNoteList(false);
+      });
+    } else {
+      if (noteRedux.length === 0) {
+        setShowLoadingNoteList(true);
         axiosClient
-          .get(`/search?q=${search}`)
+          .get("/notes")
           .then((res) => {
+            dispatch(setState(res.data));
             setNotes(res.data);
             setShowLoadingNoteList(false);
           })
@@ -30,18 +52,9 @@ function Loby() {
             console.log(err);
             setShowLoadingNoteList(false);
           });
-      }, 2000);
-    } else {
-      axiosClient
-        .get("/notes")
-        .then((res) => {
-          setNotes(res.data);
-          setShowLoadingNoteList(false);
-        })
-        .catch((err) => {
-          console.log(err);
-          setShowLoadingNoteList(false);
-        });
+      } else if (noteRedux.length > 0) {
+        setNotes(noteRedux);
+      }
     }
   }, [search]);
 
@@ -57,25 +70,34 @@ function Loby() {
   };
 
   const handleOnClickDelete = (noteId) => {
+    setShowLoadingNoteList(true);
     axiosClient
       .delete(`/note/${noteId}`)
       .then((res) => {
+        setShowLoadingNoteList(false);
         console.log(res);
       })
       .catch((err) => {
+        setShowLoadingNoteList(false);
         console.log(err);
       });
     setNotes(notes.filter((note) => note.id !== noteId));
+    dispatch(deleteNote(noteId));
     setPopUpDelete({
       show: false,
       noteId: "",
     });
   };
+
   return (
     <Layout>
       <div className="w-full flex flex-col flex-1 p-5 overflow-y-scroll">
         <p className="text-4xl font-bold text-white">Sticky Notes</p>
-        <SearchBar onChange={(search) => setSearch(search)} />
+        <SearchBar
+          onChange={(search) => {
+            setSearch(search);
+          }}
+        />
         <div className="w-full flex-1">
           <div>
             {showLoadingNoteList && (
