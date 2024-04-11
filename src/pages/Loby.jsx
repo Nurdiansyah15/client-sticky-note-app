@@ -7,7 +7,7 @@ import axiosClient from "../axios/axiosClient";
 import SearchBar from "../components/SearchBar";
 import NoteListSkeleton from "../components/NoteListSkeleton";
 import { useDispatch, useSelector } from "react-redux";
-import { setState, deleteNote } from "../redux/features/noteSlice";
+import { setNote, deleteNote } from "../redux/features/noteSlice";
 
 function Loby() {
   const [showLoadingNoteList, setShowLoadingNoteList] = React.useState(false);
@@ -20,6 +20,7 @@ function Loby() {
   const [notes, setNotes] = React.useState([]);
   const dispatch = useDispatch();
   const noteRedux = useSelector((state) => state.note.note);
+  const userState = useSelector((state) => state.user.user);
 
   React.useEffect(() => {
     if (search) {
@@ -41,22 +42,28 @@ function Loby() {
     } else {
       if (noteRedux.length === 0) {
         setShowLoadingNoteList(true);
-        axiosClient
-          .get("/notes")
-          .then((res) => {
-            dispatch(setState(res.data));
-            setNotes(res.data);
-            setShowLoadingNoteList(false);
-          })
-          .catch((err) => {
-            console.log(err);
-            setShowLoadingNoteList(false);
-          });
+        if (userState.token) {
+          axiosClient
+            .get("/notes", {
+              headers: {
+                Authorization: `Bearer ${userState.token}`,
+              },
+            })
+            .then((res) => {
+              dispatch(setNote(res.data));
+              setNotes(res.data);
+              setShowLoadingNoteList(false);
+            })
+            .catch((err) => {
+              console.log(err);
+              setShowLoadingNoteList(false);
+            });
+        }
       } else if (noteRedux.length > 0) {
         setNotes(noteRedux);
       }
     }
-  }, [search]);
+  }, [userState, search]);
 
   const handleOnClickList = (noteId) => {
     navigate(`/note/${noteId}/detail`);
@@ -72,7 +79,11 @@ function Loby() {
   const handleOnClickDelete = (noteId) => {
     setShowLoadingNoteList(true);
     axiosClient
-      .delete(`/note/${noteId}`)
+      .delete(`/note/${noteId}`, {
+        headers: {
+          Authorization: `Bearer ${userState.token}`,
+        },
+      })
       .then((res) => {
         setShowLoadingNoteList(false);
         console.log(res);

@@ -41,3 +41,11 @@ code {
 ::-webkit-scrollbar-button {
   display: none;
 }
+
+input {
+  color: white;
+  background-color: black;
+}
+::-ms-reveal {
+  filter: invert(100%);
+}

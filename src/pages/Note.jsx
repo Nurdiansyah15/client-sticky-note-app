@@ -6,48 +6,57 @@ import { useNavigate, useParams } from "react-router-dom";
 import NoteSkeleton from "../components/NoteSkeleton";
 import LoadingPage from "../components/LoadingPage";
 import { useDispatch, useSelector } from "react-redux";
-import { addNote, setState, updateNote } from "../redux/features/noteSlice";
+import { addNote, setNote, updateNote } from "../redux/features/noteSlice";
 
 function Note() {
   const [loadingPage, setLoadingPage] = React.useState(false);
-  const [showLoadingNote, setShowLoadingNote] = React.useState(false);
+  const [showLoadingNote, setShowLoadingNote] = React.useState(true);
   const navigate = useNavigate();
-  const [note, setNote] = React.useState({
+  const [notes, setNotes] = React.useState({
     title: "",
     content: "",
   });
   const { noteId } = useParams();
   const dispatch = useDispatch();
   const noteRedux = useSelector((state) => state.note.note);
+  const userState = useSelector((state) => state.user.user);
 
   useEffect(() => {
     if (noteId) {
       if (noteRedux.length === 0) {
-        setShowLoadingNote(true);
-        axiosClient
-          .get("/notes")
-          .then((res) => {
-            dispatch(setState(res.data));
-            setNote(res.data.find((note) => note.id === noteId));
-            setShowLoadingNote(false);
-          })
-          .catch((err) => {
-            setShowLoadingNote(false);
-          });
+        if (userState.token) {
+          axiosClient
+            .get("/notes", {
+              headers: {
+                Authorization: `Bearer ${userState.token}`,
+              },
+            })
+            .then((res) => {
+              dispatch(setNote(res.data));
+              setNotes(res.data.find((note) => note.id === noteId));
+              setShowLoadingNote(false);
+            })
+            .catch((err) => {
+              console.log(err);
+              setShowLoadingNote(false);
+            });
+        }
       } else if (noteRedux.length > 0) {
-        setNote(noteRedux.find((note) => note.id === noteId));
+        setNotes(noteRedux.find((note) => note.id === noteId));
+        setShowLoadingNote(false);
       }
     }
-  }, []);
+    setShowLoadingNote(false);
+  }, [userState]);
   const handleOnChangeTitle = (event) => {
     event.target.style.height = "auto";
     event.target.style.height = event.target.scrollHeight + "px";
     const { name, value } = event.target;
-    setNote({ ...note, [name]: value });
+    setNotes({ ...notes, [name]: value });
   };
   const handleOnChangeContent = (event) => {
     const { name, value } = event.target;
-    setNote({ ...note, [name]: value });
+    setNotes({ ...notes, [name]: value });
   };
 
   const handleSubmit = (event) => {
@@ -55,12 +64,19 @@ function Note() {
 
     // update
     if (noteId) {
-      setLoadingPage(true);
       axiosClient
-        .put(`/note/${noteId}`, {
-          title: note.title,
-          content: note.content,
-        })
+        .put(
+          `/note/${noteId}`,
+          {
+            title: notes.title,
+            content: notes.content,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${userState.token}`,
+            },
+          }
+        )
         .then((res) => {
           dispatch(updateNote(res.data));
           setLoadingPage(false);
@@ -75,10 +91,18 @@ function Note() {
     // create
     setLoadingPage(true);
     axiosClient
-      .post("/note", {
-        title: note.title,
-        content: note.content,
-      })
+      .post(
+        "/note",
+        {
+          title: notes.title,
+          content: notes.content,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${userState.token}`,
+          },
+        }
+      )
       .then((res) => {
         dispatch(addNote(res.data));
         setLoadingPage(false);
@@ -104,7 +128,7 @@ function Note() {
               name="title"
               id="title"
               placeholder="Title"
-              value={note.title}
+              value={notes.title}
               className="w-full px-5 bg-slate-700 text-2xl text-white outline-none resize-none"
             />
           </div>
@@ -113,7 +137,7 @@ function Note() {
               onChange={handleOnChangeContent}
               type="text-area"
               name="content"
-              value={note.content}
+              value={notes.content}
               id="content"
               placeholder="Content"
               className="w-full h-full px-5 bg-slate-700 text-white outline-none resize-none text-justify"
