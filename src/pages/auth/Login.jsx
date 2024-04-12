@@ -41,9 +41,10 @@ function Login() {
         dispatch(setUser(payload));
         setLoadingPage(false);
         navigate("/");
+      } else {
+        setLoadingPage(false);
       }
     })();
-    setLoadingPage(false);
   }, [navigate, userState.user.isLogin, dispatch]);
 
   const handleButtonLogin = (e) => {
@@ -85,7 +86,9 @@ function Login() {
   return (
     <>
       {loadingPage ? (
-        <LoadingPage />
+        <div className="sm:w-10/12 md:w-8/12 lg:w-6/12 xl:w-4/12 flex flex-col h-screen bg-slate-700 m-auto relative">
+          <LoadingPage />
+        </div>
       ) : (
         <div className="sm:w-10/12 md:w-8/12 lg:w-6/12 xl:w-4/12 flex flex-col h-screen bg-white m-auto relative">
           <div className="py-10 px-16 w-full flex flex-col flex-1">

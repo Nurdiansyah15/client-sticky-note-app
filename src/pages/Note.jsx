@@ -24,6 +24,7 @@ function Note() {
   useEffect(() => {
     if (noteId) {
       if (noteRedux.length === 0) {
+        setShowLoadingNote(true);
         if (userState.token) {
           axiosClient
             .get("/notes", {
@@ -35,18 +36,23 @@ function Note() {
               dispatch(setNote(res.data));
               setNotes(res.data.find((note) => note.id === noteId));
               setShowLoadingNote(false);
+              return;
             })
             .catch((err) => {
-              console.log(err);
+              // console.log(err);
               setShowLoadingNote(false);
+              return;
             });
         }
       } else if (noteRedux.length > 0) {
         setNotes(noteRedux.find((note) => note.id === noteId));
         setShowLoadingNote(false);
+        return;
       }
+    } else {
+      setShowLoadingNote(false);
     }
-    setShowLoadingNote(false);
+    // setShowLoadingNote(false);
   }, [userState]);
   const handleOnChangeTitle = (event) => {
     event.target.style.height = "auto";
@@ -64,6 +70,7 @@ function Note() {
 
     // update
     if (noteId) {
+      setLoadingPage(true);
       axiosClient
         .put(
           `/note/${noteId}`,
